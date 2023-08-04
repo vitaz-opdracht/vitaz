@@ -1,0 +1,16 @@
+node_modules
+coverage
+infra/rabbitmq/rabbitmq-*
+prescriptions
+
+site/client/.angular
+
+# IDEs and editors
+.idea
+.editorconfig
+.vscode
+
+# System files
+.DS_Store
+
+emb.db

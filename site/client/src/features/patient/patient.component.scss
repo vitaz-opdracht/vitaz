@@ -1,0 +1,24 @@
+.p-date-icon-left {
+  position: relative;
+  display: inline-block;
+}
+
+.p-date-icon-left > i {
+  position: absolute;
+  top: 50%;
+  margin-top: -.5rem;
+  z-index: 1;
+}
+
+.p-date-icon-left > i{
+  left: 0.75rem;
+  color: #6c757d;
+}
+
+::ng-deep {
+  .p-date-icon-left {
+    input {
+      padding-left: 2.5rem !important;
+    }
+  }
+}
