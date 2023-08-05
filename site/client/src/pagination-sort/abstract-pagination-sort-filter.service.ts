@@ -9,7 +9,7 @@ export class AbstractPaginationSortFilterService<Entity> {
     constructor(protected readonly httpClient: HttpClient, private readonly entityName: string) {
     }
 
-    findPrescriptions(pagination: Pagination, sort: Sort, filters: Filter[]): Observable<PaginatedResource<Entity>> {
+    find(pagination: Pagination, sort: Sort, filters: Filter[]): Observable<PaginatedResource<Entity>> {
         let params = new HttpParams()
             .set('skip', pagination.skip)
             .set('take', pagination.take)

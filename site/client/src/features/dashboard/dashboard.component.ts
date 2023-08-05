@@ -118,7 +118,7 @@ export class DashboardComponent implements OnInit {
   })));
 
   readonly data$: Observable<PaginatedResource<Prescription>> = this.dateFilter$.pipe(switchMap((filters) => {
-    return this.prescriptionService.findPrescriptions({
+    return this.prescriptionService.find({
       skip: 0,
       take: 10000
     }, {sortColumn: 'date', sortOrder: 'ASC'}, filters);

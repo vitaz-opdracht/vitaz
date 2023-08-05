@@ -16,6 +16,6 @@ export class PaginationSortFilter<Entity, Service extends AbstractPaginationSort
     readonly result$ = combineLatest([this.paginate$, this.sort$, this.filter$])
         .pipe(
             switchMap(([pagination, sort, filters]) =>
-                this.service.findPrescriptions(pagination, sort, filters)));
+                this.service.find(pagination, sort, filters)));
 
 }
