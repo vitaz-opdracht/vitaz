@@ -32,6 +32,7 @@ describe('app', () => {
 
     describe('When init completed', () => {
         function fakeAddFilesToFolder(amount) {
+            jest.spyOn(queueWriter, 'addFileToQueue').mockImplementation();
             jest.spyOn(chokidar, 'watch').mockReturnValue({
                 on: jest.fn().mockImplementation((method, callback) => {
                     for (let i = 0; i < amount; i++) {
@@ -54,7 +55,6 @@ describe('app', () => {
 
         it('should add paths to the queueWriter when chokidar emits an add event', async () => {
             fakeAddFilesToFolder(1);
-            jest.spyOn(queueWriter, 'addFileToQueue');
 
             require('./app');
             await Promise.resolve();
