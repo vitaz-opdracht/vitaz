@@ -12,6 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "amqplib": "^0.10.3",
-    "better-sqlite3": "^8.5.0"
+    "pg": "^8.11.2"
   }
 }

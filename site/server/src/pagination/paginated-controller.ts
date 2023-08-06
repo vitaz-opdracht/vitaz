@@ -1,7 +1,7 @@
 import {Get, Query} from "@nestjs/common";
 import {PaginatedService} from "./paginated-service";
 import {PaginatedResource} from "./paginated-resource";
-import {Between, Equal, FindOptionsOrder, Like} from "typeorm";
+import {Between, Equal, FindOptionsOrder, Like, Raw} from "typeorm";
 import {FindOptionsWhere} from "typeorm/find-options/FindOptionsWhere";
 
 export abstract class PaginatedController<Entity, Service extends PaginatedService<Entity>> {
@@ -12,7 +12,7 @@ export abstract class PaginatedController<Entity, Service extends PaginatedServi
     async findAll(
         @Query() query: any,
     ): Promise<PaginatedResource<Entity>> {
-        const {skip = 0, take = 10, sortColumn, sortOrder = 'ASC', ...extraParams} = query;
+        const {skip = 0, take = 10, sortColumn = 'id', sortOrder = 'ASC', ...extraParams} = query;
 
         const filters = this.parseFilters(extraParams);
         const order = this.parseOrder(sortColumn, sortOrder);
@@ -58,11 +58,15 @@ export abstract class PaginatedController<Entity, Service extends PaginatedServi
         return root;
     }
 
-    createFilter(acc: object, key: string, value: unknown): void {
+    createFilter(acc: object, key: string, value: string | number): void {
+        if (typeof value === 'string') {
+            value = value.toLowerCase();
+        }
+
         const keyParts = key.split('.');
         keyParts.reduce((acc, curr, index) => {
             if (index === keyParts.length - 1) {
-                acc[curr] = Like(`%${value}%`);
+                acc[curr] = Raw((alias) =>`LOWER(${alias}) Like '%${value}%'`);
                 return null;
             } else {
                 const newObj = acc[curr] ?? {};

@@ -1,7 +1,7 @@
 const queueReaderWriter = require('./queue-reader-writer');
-const {addPrescriptionToDb, addPrescriptionRuleViolationsToDb} = require("./db");
+const {initDatabaseConnection, addPrescriptionToDb, addPrescriptionRuleViolationsToDb} = require("./db");
 
-(async () => {
+initDatabaseConnection().then(async () => {
     await queueReaderWriter.init({
         acceptedPrescriptionHandler: (prescription, ack, reject) => {
             try {
@@ -21,4 +21,4 @@ const {addPrescriptionToDb, addPrescriptionRuleViolationsToDb} = require("./db")
             }
         }
     });
-})();
+});

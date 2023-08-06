@@ -1,7 +1,7 @@
-const db = require('./db');
+const query = require('./db').query;
 
-function getPrescriberSpecialism(prescriberId) {
-    return db.prepare('SELECT specid FROM arts WHERE id = ?').pluck().get(prescriberId);
+async function getPrescriberSpecialism(prescriberId) {
+    return (await query({text: 'SELECT specid FROM arts WHERE id = $1', values: [prescriberId]})).rows[0]?.specid;
 }
 
 module.exports = {

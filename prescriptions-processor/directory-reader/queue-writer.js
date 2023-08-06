@@ -60,13 +60,13 @@ async function retry(functionalityToRetry, retryDelay) {
 }
 
 async function buildConnection() {
-    const connection = await amqp.connect('amqp://guest:guest@localhost:5672');
+    const connection = await amqp.connect(`amqp://guest:guest@${process.env.AMQP_HOST || 'localhost'}:5672`);
     const channel = await connection.createConfirmChannel();
     return {connection, channel};
 }
 
 function addFileToQueue(path) {
-    const randomTimeout = Math.round(Math.random() * 5000) + 5000;
+    const randomTimeout = 100;//Math.round(Math.random() * 5000) + 5000;
     setTimeout(() => prescriptionPaths.push(path), randomTimeout);
 }
 

@@ -1,32 +1,13 @@
-const path = require("path");
-const db = require('better-sqlite3')(path.join('/host/emb.db'));
-db.pragma('journal_mode = WAL');
+const {Client} = require('pg');
 
-function resetToInitialState() {
-    tryFailSilently(() => db.exec('DROP TABLE IF EXISTS voorgeschreven_medicatie;'));
-    tryFailSilently(() => db.exec('DROP TABLE IF EXISTS voorschrift_regel_overtreding;'));
-    tryFailSilently(() => db.exec('DROP TABLE IF EXISTS voorschrift;'));
-    tryFailSilently(() => db.exec('DROP TABLE IF EXISTS frequentie;'));
-    tryFailSilently(() => db.exec('DROP TABLE IF EXISTS regel;'));
-    tryFailSilently(() => db.exec('ALTER TABLE artikel DROP COLUMN allowpregnant;'));
-    tryFailSilently(() => db.exec('DELETE FROM dossierattribute WHERE dossierid = 12999 AND attributeid IN (3, 4);'));
-}
-
-function tryFailSilently(fn) {
-    try {
-        fn();
-    } catch (e) {
-    }
-}
-
-function createAndFillFrequenciesTable() {
-    db.exec(`
+async function createAndFillFrequenciesTable(db) {
+    await db.query(`
         CREATE TABLE frequentie (
-            id INTEGER PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             frequentie TEXT NOT NULL
         );
     `);
-    db.exec(`
+    await db.query(`
         INSERT INTO frequentie (frequentie) VALUES
             ('1x daags na ontbijt'),
             ('1x daags voor het middageten'),
@@ -39,8 +20,8 @@ function createAndFillFrequenciesTable() {
     `);
 }
 
-function createAndFillRulesTable() {
-    db.exec(`
+async function createAndFillRulesTable(db) {
+    await db.query(`
         CREATE TABLE regel (
             id TEXT PRIMARY KEY,
             description TEXT NOT NULL,
@@ -48,7 +29,7 @@ function createAndFillRulesTable() {
             rule_order INTEGER NOT NULL
         );
     `);
-    db.exec(`
+    await db.query(`
         INSERT INTO regel (id, description, enabled, rule_order) VALUES
             ('sex', 'Prescribed medicine for the wrong sex', 1, 0),
             ('age', 'Patient''s age out of range for the prescribed medicine', 1, 1),
@@ -59,8 +40,8 @@ function createAndFillRulesTable() {
     `);
 }
 
-function createPrescriptionsTable() {
-    db.exec(`
+async function createPrescriptionsTable(db) {
+    await db.query(`
         CREATE TABLE IF NOT EXISTS voorschrift (
             id TEXT PRIMARY KEY,
             patient INTEGER,
@@ -73,11 +54,11 @@ function createPrescriptionsTable() {
     `);
 }
 
-function createPrescribedMedicationTable() {
-    db.exec(`
+async function createPrescribedMedicationTable(db) {
+    await db.query(`
         CREATE TABLE IF NOT EXISTS voorgeschreven_medicatie (
-            id INTEGER PRIMARY KEY,
-            voorschrift INTEGER,
+            id SERIAL PRIMARY KEY,
+            voorschrift TEXT,
             medicatie INTEGER,
             aantal INTEGER,
             frequentie INTEGER,
@@ -88,62 +69,73 @@ function createPrescribedMedicationTable() {
     `);
 }
 
-function createPrescriptionRuleViolationTable() {
-    db.exec(`
+async function createPrescriptionRuleViolationTable(db) {
+    await db.query(`
         CREATE TABLE IF NOT EXISTS voorschrift_regel_overtreding (
-            id INTEGER PRIMARY KEY,
-            voorschrift INTEGER,
-            regel INTEGER,
+            id SERIAL PRIMARY KEY,
+            voorschrift TEXT,
+            regel TEXT,
             FOREIGN KEY (voorschrift) REFERENCES voorschrift(id),
             FOREIGN KEY (regel) REFERENCES regel(id)
         )
     `);
 }
 
-function addAllowPregnantToMedicineTable() {
-    db.exec(`ALTER TABLE artikel ADD allowpregnant INT DEFAULT 0;`);
+async function addAllowPregnantToMedicineTable(db) {
+    await db.query(`ALTER TABLE artikel ADD COLUMN allowpregnant INT DEFAULT 0;`);
 }
 
-function addRandomPregnantData() {
-    db.exec(`
+async function addRandomPregnantData(db) {
+    await db.query(`
         UPDATE artikel
-        SET allowpregnant = ABS(RANDOM()) % 2
+        SET allowpregnant = (SELECT ROUND(RANDOM()))
         WHERE allowfemale = 1;
     `);
 }
 
-function addPregnancyDataForTesting() {
+async function addPregnancyDataForTesting(db) {
     /* There are no woman who are pregnant and have a weight and length attribute, so we have to manipulate the data */
-    db.exec(`
+    await db.query(`
         INSERT INTO dossierattribute (dossierid, attributeid, datefrom, dateend, intvalue, strvalue) VALUES
             (12999, 3, '2023-07-01', null, 55, null),
             (12999, 4, '2023-06-23', null, 175, null);
     `);
 
-    db.exec(`
+    await db.query(`
         UPDATE artikel
         SET allowpregnant = 1
         WHERE artikel IN ('ANAPA ', 'AMANDELOLIE-ZOETE', 'RA INFUSOR');
     `);
 
-    db.exec(`
+    await db.query(`
         UPDATE artikel
         SET allowpregnant = 0
         WHERE artikel = 'DOS MEDICAL NASAAL SPOELZOUT';
     `);
 }
 
-function setupDatabase() {
-    resetToInitialState();
-    createAndFillFrequenciesTable();
-    createAndFillRulesTable();
-    createPrescriptionsTable();
-    createPrescribedMedicationTable();
-    createPrescriptionRuleViolationTable();
-    addAllowPregnantToMedicineTable();
-    addRandomPregnantData();
-    addPregnancyDataForTesting();
-    db.close();
+async function setupDatabase(db) {
+    await createAndFillFrequenciesTable(db);
+    await createAndFillRulesTable(db);
+    await createPrescriptionsTable(db);
+    await createPrescribedMedicationTable(db);
+    await createPrescriptionRuleViolationTable(db);
+    await addAllowPregnantToMedicineTable(db);
+    await addRandomPregnantData(db);
+    await addPregnancyDataForTesting(db);
+    await db.end();
 }
 
-setupDatabase();
+async function initDatabaseConnection() {
+    const client = new Client({
+        user: 'postgres',
+        password: 'postgres',
+        host: 'postgres',
+        database: 'db',
+        port: 5432
+    });
+    await client.connect();
+    return client;
+}
+
+initDatabaseConnection().then(async (client) => await setupDatabase(client));

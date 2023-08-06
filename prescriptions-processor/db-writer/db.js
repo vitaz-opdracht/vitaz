@@ -1,6 +1,16 @@
-const path = require("path");
-const db = require('better-sqlite3')(path.join(__dirname, '../../emb.db'));
-db.pragma('journal_mode = WAL');
+const {Client} = require('pg');
+let db;
+
+async function initDatabaseConnection() {
+    db = new Client({
+        user: 'postgres',
+        password: 'postgres',
+        host: process.env.DATABASE_HOST || 'localhost',
+        database: 'db',
+        port: 5432
+    });
+    await db.connect();
+}
 
 const frequencies = [
     '1x daags na ontbijt',
@@ -13,42 +23,57 @@ const frequencies = [
     '3x per dag na het eten',
 ];
 
-function addPrescriptionToDb(prescription, valid) {
-    const insertPrescription = db.prepare('INSERT INTO voorschrift (id, patient, voorschrijver, datum, geldig) VALUES (?, ?, ?, ?, ?)');
-    const insertPrescribedMedication = db.prepare('INSERT INTO voorgeschreven_medicatie (voorschrift, medicatie, aantal, frequentie) VALUES (?, ?, ?, ?)');
+async function addPrescriptionToDb(prescription, valid) {
+    const {
+        id: prescriptionId,
+        patient: {id: patientId},
+        prescriber: {id: prescriberId},
+        date,
+        medication: medicationList
+    } = prescription;
 
-    const transaction = db.transaction((data, valid) => {
-        const {
-            id: prescriptionId,
-            patient: {id: patientId},
-            prescriber: {id: prescriberId},
-            date,
-            medication: medicationList
-        } = data;
+    try {
+        await db.query('BEGIN');
 
-        insertPrescription.run(prescriptionId, patientId, prescriberId, date, Number(valid));
+        await db.query({
+            text: 'INSERT INTO voorschrift (id, patient, voorschrijver, datum, geldig) VALUES ($1, $2, $3, $4, $5)',
+            values: [prescriptionId, patientId, prescriberId, date, Number(valid)]
+        });
 
         for (const medication of medicationList) {
-            insertPrescribedMedication.run(prescriptionId, medication.id, medication.aantal, frequencies.indexOf(medication.frequency) + 1);
+            await db.query({
+                text: 'INSERT INTO voorgeschreven_medicatie (voorschrift, medicatie, aantal, frequentie) VALUES ($1, $2, $3, $4)',
+                values: [prescriptionId, medication.id, medication.aantal, frequencies.indexOf(medication.frequency) + 1]
+            });
         }
-    });
 
-    transaction(prescription, valid);
+        await db.query('COMMIT');
+    } catch (err) {
+        await db.query('ROLLBACK');
+        throw err;
+    }
 }
 
-function addPrescriptionRuleViolationsToDb(prescriptionId, violations) {
-    const insertPrescriptionRuleViolation = db.prepare('INSERT INTO voorschrift_regel_overtreding (voorschrift, regel) VALUES (?, ?)');
+async function addPrescriptionRuleViolationsToDb(prescriptionId, violations) {
+    try {
+        await db.query('BEGIN');
 
-    const transaction = db.transaction((prescriptionId, violations) => {
         for (const violation of violations) {
-            insertPrescriptionRuleViolation.run(prescriptionId, violation);
+            await db.query({
+                text: 'INSERT INTO voorschrift_regel_overtreding (voorschrift, regel) VALUES ($1, $2)',
+                values: [prescriptionId, violation]
+            });
         }
-    });
 
-    transaction(prescriptionId, violations);
+        await db.query('COMMIT');
+    } catch (err) {
+        await db.query('ROLLBACK');
+        throw err;
+    }
 }
 
 module.exports = {
+    initDatabaseConnection,
     addPrescriptionToDb,
     addPrescriptionRuleViolationsToDb
 };

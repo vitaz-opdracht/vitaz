@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: ./client
+    ports:
+      - "80:80"
+    networks:
+      - infra_vitaz
+  server:
+    build:
+      context: ./server
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_HOST=postgres
+    networks:
+      - infra_vitaz
+
+networks:
+  infra_vitaz:
+    external: true

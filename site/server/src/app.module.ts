@@ -1,5 +1,5 @@
 import {Module} from '@nestjs/common';
-import {TypeOrmModule, TypeOrmModuleAsyncOptions} from '@nestjs/typeorm';
+import {TypeOrmModule} from '@nestjs/typeorm';
 import {Doctor} from "./controllers-etc/doctor/doctor.entity";
 import {Specialty} from "./controllers-etc/specialty/specialty.entity";
 import {MedicineSpecialty} from "./controllers-etc/medicine-specialty/medicine-specialty.entity";
@@ -40,12 +40,11 @@ import {
     PrescriptionRuleViolationController
 } from "./controllers-etc/prescription-rule-violation/prescription-rule-violation.controller";
 import {PrescriptionRuleViolationService} from "./controllers-etc/prescription-rule-violation/prescription-rule-violation.service";
-import {SqliteDatabaseProviderModule} from "./providers/sqlite-database-provider.module";
-import {DatabaseType} from "typeorm";
+import {PostgreSQLDatabaseProviderModule} from "./providers/postgre-sql-database-provider.module";
 
 @Module({
     imports: [
-        SqliteDatabaseProviderModule,
+        PostgreSQLDatabaseProviderModule,
         TypeOrmModule.forFeature([Doctor, Specialty, Medicine, MedicineSpecialty, Patient, File, Attribute, FileAttribute, Contact, Frequency, Rule, Prescription, PrescribedMedicine, PrescriptionRuleViolation])
     ],
     controllers: [DoctorController, MedicineController, SpecialtyController, MedicineSpecialtyController, PatientController, FileController, FileAttributeController, ContactController, RuleController, PrescriptionController, PrescribedMedicineController, PrescriptionRuleViolationController],

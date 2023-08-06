@@ -1,12 +1,18 @@
-const db = require('./repositories/db');
+const query = require('./repositories/db').query;
 
 const ruleQuery = 'SELECT * FROM regel WHERE enabled = 1 ORDER BY rule_order';
-let ruleConfig = db.prepare(ruleQuery).all();
-setInterval(() => {
-    ruleConfig = db.prepare(ruleQuery).all();
+
+let ruleConfig;
+
+setInterval(async () => {
+    ruleConfig = (await query(ruleQuery)).rows;
 }, 5000);
 
-function getRuleConfig() {
+async function getRuleConfig() {
+    if (ruleConfig == null) {
+        ruleConfig = (await query(ruleQuery)).rows;
+    }
+
     return ruleConfig;
 }
 

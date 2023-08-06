@@ -1,48 +1,48 @@
-const db = require('./db');
+const query = require('./db').query;
 
-function getMedicationAllowedSex(medicationIds) {
-    return db.prepare(`
+async function getMedicationAllowedSex(medicationIds) {
+    return (await query(`
         SELECT allowmale, allowfemale
         FROM artikel
         WHERE id IN (${medicationIds.map((id) => `'${id}'`).join(',')})
-    `).all();
+    `)).rows;
 }
 
-function getMedicationAllowedAge(medicationIds) {
-    return db.prepare(`
+async function getMedicationAllowedAge(medicationIds) {
+    return (await query(`
         SELECT artikel, id, minage, maxage
         FROM artikel
         WHERE id IN (${medicationIds.map((id) => `'${id}'`).join(',')})
-    `).all().map((medicine) => ({
+    `)).rows.map((medicine) => ({
         ...medicine,
         minage: Number(medicine.minage),
         maxage: Number(medicine.maxage)
     }));
 }
 
-function getMedicationSpecialisms(medicationIds) {
-    return db.prepare(`
-        SELECT GROUP_CONCAT(specid) AS specids
+async function getMedicationSpecialisms(medicationIds) {
+    return (await query(`
+        SELECT STRING_AGG(specid::text, ',') AS specids
         FROM artikelspecialisme
         WHERE artikelid IN (${medicationIds.map((id) => `'${id}'`).join(',')})
         GROUP BY artikelid
-    `).all();
+    `)).rows;
 }
 
-function getMedicationMinWeight(medicationIds) {
-    return db.prepare(`
+async function getMedicationMinWeight(medicationIds) {
+    return (await query(`
         SELECT minweight
         FROM artikel
         WHERE id IN (${medicationIds.map((id) => `'${id}'`).join(',')})
-    `).all();
+    `)).rows;
 }
 
-function getMedicationAllowPregnant(medicationIds) {
-    return db.prepare(`
+async function getMedicationAllowPregnant(medicationIds) {
+    return (await query(`
         SELECT allowpregnant
         FROM artikel
         WHERE id IN (${medicationIds.map((id) => `'${id}'`).join(',')})`
-    ).all();
+    )).rows;
 }
 
 module.exports = {

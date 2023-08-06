@@ -1,9 +1,12 @@
-node_modules
-coverage
 infra/rabbitmq/rabbitmq-*
 prescriptions
+.angular
 
-site/client/.angular
+# Database
+backup/emb.db
+
+# Tests
+coverage
 
 # IDEs and editors
 .idea
@@ -13,4 +16,6 @@ site/client/.angular
 # System files
 .DS_Store
 
-emb.db
+# Compiled output
+dist
+node_modules

@@ -1,5 +1,18 @@
 # Web App
 
+#### Table of Contents
+
+1. [Quickstart](#quickstart)
+2. [Summary](#summary)
+
+## Quickstart
+
+Run `docker-compose up` inside the `vitaz/site` folder.
+
+Navigate to http://localhost
+
+## Summary
+
 The web app uses [Angular](client/README.md) for the front-end, and [NestJS](server/README.md) for the back-end.
 
 To start the front-end and the back-end, go to their respective folders and for both run the following commands sequentially:

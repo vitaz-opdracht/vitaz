@@ -3,4 +3,4 @@ WORKDIR .
 COPY package*.json ./
 RUN npm install
 COPY . .
-CMD ["node", "setup.js"]
+CMD ["node", "app.js"]

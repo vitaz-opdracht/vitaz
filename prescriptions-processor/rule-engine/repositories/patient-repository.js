@@ -1,33 +1,36 @@
-const db = require('./db');
+const query = require('./db').query;
 
-function getPatientSex(patientId) {
-    return db.prepare('SELECT geslacht FROM patient WHERE id = ?').pluck().get(patientId);
+async function getPatientSex(patientId) {
+    return (await query({text: 'SELECT geslacht FROM patient WHERE id = $1', values: [patientId]})).rows[0]?.geslacht;
 }
 
-function getPatientBirthDate(patientId) {
-    return db.prepare('SELECT gebdat FROM patient WHERE id = ?').pluck().get(patientId);
+async function getPatientBirthDate(patientId) {
+    return (await query({text: 'SELECT gebdat FROM patient WHERE id = $1', values: [patientId]})).rows[0]?.gebdat;
 }
 
-function getPatientAttributeValue(attributeId, patientId, date) {
-    return db.prepare(`
-        SELECT intvalue FROM patient p
-            INNER JOIN dossier d ON p.id = d.patid
-            INNER JOIN dossierattribute da ON d.id = da.dossierid
-        WHERE p.id = ? AND da.attributeid = ?
-            AND ? BETWEEN da.datefrom AND (CASE WHEN da.dateend IS NULL THEN DATE('now') ELSE da.dateend END);
-    `).pluck().get(patientId, attributeId, date);
+async function getPatientAttributeValue(attributeId, patientId, date) {
+    return (await query({
+        text: `
+            SELECT intvalue FROM patient p
+                INNER JOIN dossier d ON p.id = d.patid
+                INNER JOIN dossierattribute da ON d.id = da.dossierid
+            WHERE p.id = $1 AND da.attributeid = $2
+                AND $3 BETWEEN da.datefrom AND (CASE WHEN da.dateend IS NULL THEN DATE('now') ELSE da.dateend END);
+        `,
+            values: [patientId, attributeId, date]
+    })).rows[0]?.intvalue;
 }
 
-function getPatientWeight(patientId, date) {
-    return getPatientAttributeValue(3, patientId, date);
+async function getPatientWeight(patientId, date) {
+    return await getPatientAttributeValue(3, patientId, date);
 }
 
-function getPatientPregnant(patientId, date) {
-    return getPatientAttributeValue(1, patientId, date);
+async function getPatientPregnant(patientId, date) {
+    return await getPatientAttributeValue(1, patientId, date);
 }
 
-function isPatientAlive(patientId) {
-    return db.prepare('SELECT datoverlijden FROM patient WHERE id = ?').pluck().get(patientId) == null;
+async function isPatientAlive(patientId) {
+    return (await query({text: 'SELECT datoverlijden FROM patient WHERE id = $1', values: [patientId]})).rows[0]?.datoverlijden == null;
 }
 
 module.exports = {

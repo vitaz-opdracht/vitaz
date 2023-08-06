@@ -1,25 +1,63 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    hostname: postgres
+    healthcheck:
+      test: "pg_isready --username=postgres && psql --username=postgres --list"
+      interval: 1s
+      timeout: 1s
+      retries: 60
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db
+      - PGDATA=/var/lib/postgresql/data/
+    ports:
+      - '5432:5432'
+    networks:
+      - vitaz
+
+  pgloader:
+    image: dimitri/pgloader:latest
+    volumes:
+      - ./database:/database
+    command: pgloader ./database/file.txt
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vitaz
+
   setup_db:
     build:
       context: ./database
-    volumes:
-      - ./database:/app
-      - /app/node_modules
-      - ../:/host
+    depends_on:
+      pgloader:
+        condition: service_completed_successfully
+    networks:
+      - vitaz
+
   rabbitmq:
     image: rabbitmq:management
     container_name: rabbitmq
+    hostname: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: myuser
-      RABBITMQ_DEFAULT_PASS: mypassword
     volumes:
       - ./rabbitmq/rabbitmq-data:/var/lib/rabbitmq
       - ./rabbitmq/rabbitmq-log:/var/log/rabbitmq
       - ./rabbitmq/init/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./rabbitmq/init/definitions.json:/etc/rabbitmq/definitions.json:ro
+    networks:
+      - vitaz
 
+networks:
+  vitaz:
+    driver: bridge
+
+volumes:
+  postgres_data:

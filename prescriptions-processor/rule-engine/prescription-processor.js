@@ -1,9 +1,10 @@
 const amqp = require('amqplib');
-const {check} = require('./prescription-validator');
+const {initDatabaseConnection, db} = require('./repositories/db');
 
+const {check} = require('./prescription-validator');
 async function handleIncomingMessage(data, channel) {
-    return new Promise((resolve) => {
-        const validationResult = check(data);
+    return new Promise(async (resolve) => {
+        const validationResult = await check(data);
 
         if (validationResult.valid) {
             channel.publish('prescriptions_exchange', 'accepted', Buffer.from(JSON.stringify(validationResult.data)), {persistent: true}, () => resolve());
@@ -23,14 +24,15 @@ async function retry(functionalityToRetry, retryDelay) {
     }
 }
 
-async function buildConnection() {
-    const connection = await amqp.connect('amqp://guest:guest@localhost:5672');
+async function buildAmqpConnection() {
+    const connection = await amqp.connect(`amqp://guest:guest@${process.env.AMQP_HOST || 'localhost'}:5672`);
     const channel = await connection.createConfirmChannel();
     return {connection, channel};
 }
 
 (async () => {
-    const {connection, channel} = await retry(buildConnection, 1000);
+    await retry(initDatabaseConnection, 1000);
+    const {amqpConnection, channel} = await retry(buildAmqpConnection, 1000);
 
     channel.consume('raw_prescriptions_queue', async (message) => {
         if (message !== null) {
@@ -46,7 +48,8 @@ async function buildConnection() {
     });
 
     process.on('SIGINT', async () => {
-        await connection.close();
+        await amqpConnection.close();
+        await db.end();
         process.exit(0);
     });
 })();

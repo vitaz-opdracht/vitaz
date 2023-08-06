@@ -10,23 +10,20 @@
 ## Quickstart
 
 To start the system:
-1. start the [infrastructure](infra/README.md) using `docker-compose up` in the `vitaz/infra` folder 
-2. start the [Directory Reader](prescriptions-processor/directory-reader/README.md) application by running `npm install` and `node app.js` in the `vitaz/prescriptions-processor/directory-reader` folder
-3. start the [Rule Engine](prescriptions-processor/rule-engine/README.md) application by running `npm install` and `node prescription-processor.js` in the `vitaz/prescriptions-processor/rule-engine` folder
-4. start the [Db Writer](prescriptions-processor/db-writer/README.md) application by running `npm install` and `node app.js` in the `vitaz/prescriptions-processor/db-writer` folder
+1. run `docker-compose up` in the `vitaz/infra` folder to start the [infrastructure](infra/README.md) 
+2. run `docker-compose up` in the `vitaz/prescriptions-processor` folder to start the [Prescription Processor](prescriptions-processor/README.md) processes
 
-Now the current and future JSON prescription files in the `vitaz/prescriptions` folder get inserted into the `vitaz/emb.db` database.
+Now the current and future JSON prescription files in the `vitaz/prescriptions` folder get inserted into the database.
 
 To view the web dashboard:
-1. start the [NestJS back-end](site/README.md) by running `npm install` and `npm run start` in the `vitaz/site/server` folder
-2. start the [Angular front-end](site/README.md) by running `npm install` and `npm run start` in the `vitaz/site/client` folder
-3. browse to http://localhost:4200
+1. run `docker-compose up` in the `vitaz/site` folder to start the [Angular + NestJS Web App](site/README.md)
+2. browse to http://localhost
 
 ## Infrastructure
 
 This project make use of the following infrastructure:
 1. RabbitMQ message broker
-2. A SQLite database: emb.db
+2. A PostgreSQL database
 
 View the [infra README file](infra/README.md) to set up the message broker and database using one command: `docker-compose up`.
 
@@ -53,4 +50,5 @@ The various applications' README files contain sequence diagrams for the applica
 ## Architecture Diagram
 
 The above process is visualized in an architecture diagram:
+
 ![Architecture Diagram](https://i.imgur.com/0gNOvjS.png)

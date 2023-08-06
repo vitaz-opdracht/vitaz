@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "better-sqlite3": "^8.5.0"
+    "pg": "^8.11.2"
   }
 }

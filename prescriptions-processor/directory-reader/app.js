@@ -4,12 +4,12 @@ const queueWriter = require('./queue-writer');
 const fs = require('fs');
 const {startHttpServer} = require('./http-server');
 
-const prescriptionsPath = path.join(__dirname, '../../prescriptions');
+const prescriptionsPath = process.env.PRESCRIPTIONS_FOLDER_PATH || path.join(__dirname, '../../prescriptions');
 
 let amountOfFilesAddedToFolder = 0;
 
 function watchDirectory() {
-    watch(prescriptionsPath, {ignoreInitial: false})
+    watch(prescriptionsPath, {ignoreInitial: false, usePolling: true, awaitWriteFinish: { pollInterval: 100, stabilityThreshold: 250 }})
         .on('add', (path) => {
             amountOfFilesAddedToFolder += 1;
             queueWriter.addFileToQueue(path);

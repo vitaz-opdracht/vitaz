@@ -38,7 +38,7 @@ async function retry(functionalityToRetry, retryDelay) {
 }
 
 async function buildConnection() {
-    const connection = await amqp.connect('amqp://guest:guest@localhost:5672');
+    const connection = await amqp.connect(`amqp://guest:guest@${process.env.AMQP_HOST || 'localhost'}:5672`);
     const channel = await connection.createConfirmChannel();
     return {connection, channel};
 }

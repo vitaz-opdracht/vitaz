@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  directory-reader:
+    build:
+      context: ./directory-reader
+    volumes:
+      - ../prescriptions:/host/prescriptions
+    environment:
+      - PRESCRIPTIONS_FOLDER_PATH=/host/prescriptions
+      - AMQP_HOST=rabbitmq
+    ports:
+      - "8080:8080"
+    restart: always
+    networks:
+      - infra_vitaz
+
+  db-writer:
+    build:
+      context: ./db-writer
+    environment:
+      - DATABASE_HOST=postgres
+      - AMQP_HOST=rabbitmq
+    restart: always
+    networks:
+      - infra_vitaz
+
+  rule-engine:
+    build:
+      context: ./rule-engine
+    environment:
+      - DATABASE_HOST=postgres
+      - AMQP_HOST=rabbitmq
+    restart: always
+    networks:
+      - infra_vitaz
+
+networks:
+  infra_vitaz:
+    external: true
