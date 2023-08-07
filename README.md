@@ -2,10 +2,11 @@
 
 #### Table of Contents
 1. [Quickstart](#quickstart)
-2. [Infrastructure](#infrastructure)
-3. [Applications](#applications)
-4. [Summary](#summary)
-5. [Architecture Diagram](#architecture-diagram)
+2. [Video Of Functionality](#video-of-functionality)
+3. [Infrastructure](#infrastructure)
+4. [Applications](#applications)
+5. [Summary](#summary)
+6. [Architecture Diagram](#architecture-diagram)
 
 ## Quickstart
 
@@ -18,6 +19,10 @@ Now the current and future JSON prescription files in the `vitaz/prescriptions` 
 To view the web dashboard:
 1. run `docker-compose up` in the `vitaz/site` folder to start the [Angular + NestJS Web App](site/README.md)
 2. browse to http://localhost
+
+## Video Of Functionality
+
+https://github.com/vitaz-opdracht/vitaz/assets/141641387/166cc32d-9993-4491-b0e7-f5f70d85da79
 
 ## Infrastructure
 
