@@ -20,6 +20,8 @@ To view the web dashboard:
 1. run `docker-compose up` in the `vitaz/site` folder to start the [Angular + NestJS Web App](site/README.md)
 2. browse to http://localhost
 
+**If you want to start the system again after running it, be sure to use `docker-compose down` for the folders in which you ran `docker-compose up` first!**
+
 ## Video Of Functionality
 
 https://github.com/vitaz-opdracht/vitaz/assets/141641387/166cc32d-9993-4491-b0e7-f5f70d85da79
