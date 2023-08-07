@@ -1,7 +1,7 @@
 import {Get, Query} from "@nestjs/common";
 import {PaginatedService} from "./paginated-service";
 import {PaginatedResource} from "./paginated-resource";
-import {Between, Equal, FindOptionsOrder, Like, Raw} from "typeorm";
+import {Between, Equal, FindOptionsOrder, Raw} from "typeorm";
 import {FindOptionsWhere} from "typeorm/find-options/FindOptionsWhere";
 
 export abstract class PaginatedController<Entity, Service extends PaginatedService<Entity>> {
@@ -59,14 +59,14 @@ export abstract class PaginatedController<Entity, Service extends PaginatedServi
     }
 
     createFilter(acc: object, key: string, value: string | number): void {
-        if (typeof value === 'string') {
-            value = value.toLowerCase();
-        }
-
         const keyParts = key.split('.');
         keyParts.reduce((acc, curr, index) => {
             if (index === keyParts.length - 1) {
-                acc[curr] = Raw((alias) =>`LOWER(${alias}) Like '%${value}%'`);
+                if (typeof value === 'string') {
+                    acc[curr] = Raw((alias) =>`LOWER(${alias}) Like '%${value.toLowerCase()}%'`);
+                } else {
+                    acc[curr] = Equal(value);
+                }
                 return null;
             } else {
                 const newObj = acc[curr] ?? {};
